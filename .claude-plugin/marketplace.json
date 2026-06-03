@@ -1,0 +1,24 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "bigid",
+  "description": "BigID AI skills for Data Governance, Security, Privacy, and Compliance",
+  "owner": {
+    "name": "BigID",
+    "email": "support@bigid.com"
+  },
+  "plugins": [
+    {
+      "name": "bigid",
+      "displayName": "BigID",
+      "description": "BigID AI skills for Data Governance, Security, Privacy, and Compliance",
+      "source": "./",
+      "category": "data",
+      "author": {
+        "name": "BigID",
+        "email": "support@bigid.com"
+      },
+      "homepage": "https://bigid.com",
+      "license": "Proprietary"
+    }
+  ]
+}
