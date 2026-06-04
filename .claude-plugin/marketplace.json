@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "BigID",
+  "name": "bigid",
   "description": "BigID AI skills for Data Governance, Security, Privacy, and Compliance",
   "owner": {
     "name": "BigID",
@@ -8,7 +8,7 @@
   },
   "plugins": [
     {
-      "name": "BigID",
+      "name": "bigid",
       "displayName": "BigID",
       "description": "BigID AI skills for Data Governance, Security, Privacy, and Compliance",
       "source": "./",
