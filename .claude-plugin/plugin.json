@@ -1,7 +1,7 @@
 {
   "name": "bigid",
   "description": "BigID AI skills for Data Governance, Security, Privacy, and Compliance",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": {
     "name": "BigID",
     "email": "support@bigid.com"
