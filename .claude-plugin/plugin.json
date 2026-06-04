@@ -7,7 +7,7 @@
     "email": "support@bigid.com"
   },
   "homepage": "https://bigid.com",
-  "repository": "https://github.com/bigexchange/bigid-plugin-official.git"
+  "repository": "https://github.com/bigexchange/bigid-plugin-official.git",
   "license": "Proprietary",
   "mcpServers": {
     "bigid": {
