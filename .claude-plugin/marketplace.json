@@ -20,5 +20,6 @@
       "homepage": "https://bigid.com",
       "license": "Proprietary"
     }
-  ]
+  ],
+  "version": "0.1.0"
 }
