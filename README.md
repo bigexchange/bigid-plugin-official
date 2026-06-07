@@ -10,11 +10,9 @@ claude plugin install git@gitlab.com:bigid/agentic-ai/skills.git
 
 ## Available Skills
 
-| Skill | Trigger | Description |
-|---|---|---|
-| `/bigid:bigid-kyd` | BigID, data governance, PII, violations, KYD | Know Your Data expert — inventory, catalog, remediation |
-| `/bigid:bigid-hello-world` | Run a hello world | Minimal skill to verify the plugin is installed and skills are loading correctly.|
-
+| Skill                         | Trigger | Description |
+|-------------------------------|---|---|
+| `/bigid:bigid-know-your-data` | BigID, data governance, PII, violations, KYD | Know Your Data expert — inventory, catalog, remediation |
 ## Using Skills with the BigID MCP Server
 
 These skills work with the [BigID MCP Server](https://github.com/bigid/mcp-server), which provides live API access to your BigID environment.
