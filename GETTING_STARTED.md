@@ -25,7 +25,7 @@ The same `SKILL.md` format works everywhere. Skills activate **automatically and
 claude plugin install git@gitlab.com:bigid/agentic-ai/skills.git
 ```
 
-Skills are namespaced under `bigid`. Use `/bigid:bigid-kyd` or just ask anything BigID-related — Claude activates the skill automatically.
+Skills are namespaced under `bigid`. Use `/bigid:bigid-know-your-data` or just ask anything BigID-related — Claude activates the skill automatically.
 
 ---
 
@@ -44,8 +44,8 @@ curl https://api.anthropic.com/v1/skills \
   -H "x-api-key: $ANTHROPIC_API_KEY" \
   -H "anthropic-version: 2023-06-01" \
   -H "anthropic-beta: code-execution-2025-08-25,skills-2025-10-02" \
-  -F "display_title=BigID KYD" \
-  -F "files=@bigid-kyd.zip"
+  -F "display_title=BigID KNOW YOUR DATA" \
+  -F "files=@bigid-know-your-data.zip"
 ```
 
 To update: `POST /v1/skills/{skill_id}/versions` — users receive the update instantly, no action needed.

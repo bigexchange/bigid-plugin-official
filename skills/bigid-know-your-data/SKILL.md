@@ -1,5 +1,5 @@
 ---
-name: bigid-kyd
+name: bigid-know-your-data
 description: >
   BigID Know Your Data (KYD) expert assistant for Data Governance, Security, Privacy, and Compliance.
   Activate this skill whenever the user asks ANYTHING related to BigID, data sources, PII, policy violations,
