@@ -4,7 +4,7 @@ The BigID Plugin connects your AI agent directly to your BigID environment. Disc
 
 ## Skills
 
-Skills are context-aware instruction sets that activate automatically when relevant. When you ask about PII exposure, policy violations, or data risk, the right skill kicks in — no slash commands needed. Each skill knows which BigID APIs to call, how to interpret the results, and what remediation actions are available.
+Skills are context-aware instruction sets that activate automatically when relevant. When you ask about PII exposure, policy violations, security cases, or privacy compliance, the right skill kicks in — no slash commands needed. Each skill knows which BigID APIs to call, how to interpret the results, and what remediation actions are available.
 
 ## MCP Server
 
@@ -15,6 +15,9 @@ The plugin connects to the BigID MCP Server, which provides live API access to y
 | Skill | Triggers | Description |
 |---|---|---|
 | `/bigid:bigid-know-your-data` | BigID, data governance, PII, violations, KYD | Know Your Data expert — inventory, catalog, remediation |
+| `/bigid:bigid-security-posture` | security posture, DSPM, security cases, exposed credentials, top cases | DSPM triage — ranks security cases by risk, drives remediation |
+| `/bigid:bigid-privacy-posture` | privacy posture, NIST-P, compliance report, privacy risk, posture deck | Generates a NIST Privacy Framework compliance report from live BigID data |
+| `/bigid:bigid-compliance-report` | compliance report, GDPR, HIPAA, EO 14117, OSFI, prove compliance, audit evidence | Generates a regulation-specific compliance evidence PDF from live BigID data |
 
 ## Installation
 
