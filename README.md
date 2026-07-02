@@ -1,12 +1,15 @@
 # BigID Plugin
 
-The BigID Plugin connects your AI agent directly to your BigID environment. Discover and inventory data sources, run and customize scan workflows, and explore your unified data catalog — all in natural language. Get full visibility into your data security posture across DSPM, access governance, privacy, and labeling. Manage regulatory risk, automate compliance assessments, and detect policy violations in real time. Take immediate remediation action: reduce access, delete or clean sensitive data, and enforce controls — end-to-end data and AI protection in one connector.
+The BigID Plugin connects your AI agent directly to your BigID environment. Get full visibility into your data security posture across DSPM, privacy, and compliance — all in natural language. Manage regulatory risk, automate compliance assessments, and detect policy violations in real time.
 
 ## Skills
 
-Skills are context-aware instruction sets that activate automatically when relevant. When you ask about PII exposure, policy violations, security cases, or privacy compliance, the right skill kicks in — no slash commands needed. Each skill knows which BigID APIs to call, how to interpret the results, and what remediation actions are available.
+Skills are context-aware instruction sets that activate automatically when relevant. When you ask about security cases, privacy posture, or compliance evidence, the right skill kicks in — no slash commands needed. Each skill knows which BigID APIs to call, how to interpret the results, and what remediation actions are available.
 
 ## MCP Server
+
+> **Early Adopters Program**
+> The BigID MCP Server is currently available as part of an Early Adopters Program. To join the program and get access, contact BigID support or reach out at [mcp@bigid.com](mailto:mcp@bigid.com).
 
 The plugin connects to the BigID MCP Server, which provides live API access to your BigID environment. Configure your BigID URL and credentials in the MCP server before installing the plugin.
 
@@ -14,7 +17,6 @@ The plugin connects to the BigID MCP Server, which provides live API access to y
 
 | Skill | Triggers | Description |
 |---|---|---|
-| `/bigid:bigid-know-your-data` | BigID, data governance, PII, violations, KYD | Know Your Data expert — inventory, catalog, remediation |
 | `/bigid:bigid-security-posture` | security posture, DSPM, security cases, exposed credentials, top cases | DSPM triage — ranks security cases by risk, drives remediation |
 | `/bigid:bigid-privacy-posture` | privacy posture, NIST-P, compliance report, privacy risk, posture deck | Generates a NIST Privacy Framework compliance report from live BigID data |
 | `/bigid:bigid-compliance-report` | compliance report, GDPR, HIPAA, EO 14117, OSFI, prove compliance, audit evidence | Generates a regulation-specific compliance evidence PDF from live BigID data |
