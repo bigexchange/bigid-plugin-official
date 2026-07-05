@@ -1,6 +1,6 @@
 # HIPAA — Reference File
 
-Regulation reference for the BigID Compliance Report skill. Loaded in Step 4 when the
+Regulation/framework reference for the BigID Regulations & Frameworks skill. Loaded in Step 4 when the
 user selects **HIPAA**. Provides the regulatory facts, BigID category mapping,
 controls-mapping skeleton, and report outline the PDF generator consumes.
 
@@ -51,8 +51,8 @@ CISO, Compliance Committee, or Board.
   delay" and not later than 60 days; OCR notification for breaches ≥500 individuals
   within 60 days; smaller breaches reported annually.
 
-> Verify wording against the Step 2 web search — particularly any final rule status
-> change. Primary sources:
+> Verify wording against the optional Step 3h currency check, only if one was run
+> for this report — particularly any final rule status change. Primary sources:
 > - HHS OCR (HIPAA): https://www.hhs.gov/hipaa/index.html
 > - 45 C.F.R. Parts 160 & 164
 > - HIPAA Security Rule NPRM (90 FR 800, Jan 6 2025)
@@ -171,4 +171,4 @@ Contract). Headings stay verbatim; content below is HIPAA-specific.
 
 - HHS OCR — HIPAA: https://www.hhs.gov/hipaa/index.html
 - HIPAA Security Rule NPRM (90 FR 800, Jan 6, 2025): consult the Federal Register
-- Any additional current source surfaced during the Step 2 web search.
+- Any additional current source surfaced during the optional Step 3h currency check (if run).
