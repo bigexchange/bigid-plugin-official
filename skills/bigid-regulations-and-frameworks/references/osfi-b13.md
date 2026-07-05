@@ -1,6 +1,6 @@
 # OSFI B-13 — Reference File
 
-Regulation reference for the BigID Compliance Report skill. Loaded in Step 4 when the
+Regulation/framework reference for the BigID Regulations & Frameworks skill. Loaded in Step 4 when the
 user selects **OSFI B-13**. Provides the regulatory facts, BigID category mapping,
 controls-mapping skeleton, and report outline the PDF generator consumes.
 
@@ -36,7 +36,7 @@ a CISO or a board-level Risk Committee.
 - **Related instruments to reference where relevant:** OSFI Technology & Cyber Security
   Incident Reporting (TCIR) advisory; Guideline B-10 (third-party risk).
 
-> Verify current wording against the Step 2 web search. If the search surfaces an
+> Verify current wording against the optional Step 3h currency check, only if one was run for this report. If the search surfaces an
 > updated revision or supervisory expectation, reflect it in the Executive Summary and
 > the References section. Primary sources:
 > - https://www.osfi-bsif.gc.ca/en/risks/technology-cyber-risk-management
@@ -108,7 +108,7 @@ the headings themselves stay verbatim.
    classification "Internal — Confidential"; data source "BigID MCP".
 2. **Executive Summary** — overall posture, total open cases, highest-severity gaps, and
    the Compliant/Partially compliant/Non-compliant rollup across the three B-13 domains.
-   Plain language for a Risk Committee. Fold in any Step 2 search update.
+   Plain language for a Risk Committee. Fold in any Step 3h currency-check finding, only if one was run.
 3. **Regulatory Overview** — what B-13 requires, the three-domain structure, effective
    date, FRFI applicability, and supervisory (not monetary) risk framing.
 4. **Data Landscape** — BigID categories mapped to B-13 data types; include the
@@ -145,4 +145,4 @@ the headings themselves stay verbatim.
   https://www.osfi-bsif.gc.ca/en/risks/technology-cyber-risk-management
 - OSFI — B-13 Self-Assessment Tool:
   https://www.osfi-bsif.gc.ca/en/guidance/guidance-library/technology-cyber-risk-management-self-assessment-tool
-- Any additional current source surfaced during the Step 2 web search.
+- Any additional current source surfaced during the optional Step 3h currency check (if run).

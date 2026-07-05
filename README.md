@@ -17,9 +17,9 @@ The plugin connects to the BigID MCP Server, which provides live API access to y
 
 | Skill | Triggers | Description |
 |---|---|---|
-| `/bigid:bigid-security-posture` | security posture, DSPM, security cases, exposed credentials, top cases | DSPM triage — ranks security cases by risk, drives remediation |
-| `/bigid:bigid-privacy-posture` | privacy posture, NIST-P, compliance report, privacy risk, posture deck | Generates a NIST Privacy Framework compliance report from live BigID data |
-| `/bigid:bigid-compliance-report` | compliance report, GDPR, HIPAA, EO 14117, OSFI, prove compliance, audit evidence | Generates a regulation-specific compliance evidence PDF from live BigID data |
+| `/bigid:bigid-security-posture` | security posture, DSPM, security cases, exposed credentials, top cases, what should I fix first | DSPM triage — ranks credential-exposure and policy cases by risk, drives remediation |
+| `/bigid:bigid-privacy-posture` | privacy posture, NIST-P, NIST-P score, privacy risk, posture deck, refresh the posture deck | Generates a BigID-branded NIST Privacy Framework posture deck (PPTX) from live BigID data |
+| `/bigid:bigid-regulations-and-frameworks` | compliance report, GDPR, HIPAA, EO 14117, OSFI B-13, prove compliance, audit evidence, check us against [regulation] | Generates a regulation-specific compliance evidence PDF from live BigID data — supports named regulations, laws, executive orders, and custom uploaded policies |
 
 ## Installation
 

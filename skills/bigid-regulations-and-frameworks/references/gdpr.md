@@ -1,6 +1,6 @@
 # GDPR — Reference File
 
-Regulation reference for the BigID Compliance Report skill. Loaded in Step 4 when the
+Regulation/framework reference for the BigID Regulations & Frameworks skill. Loaded in Step 4 when the
 user selects **GDPR**. Provides the regulatory facts, BigID category mapping,
 controls-mapping skeleton, and report outline the PDF generator consumes.
 
@@ -40,7 +40,7 @@ The report is written for a Data Protection Officer (DPO), CISO, or General Coun
   unique identification, health data, sex life, sexual orientation. Processing is
   generally prohibited absent an Art. 9(2) condition.
 
-> Verify wording against the Step 2 web search. EDPB guidelines and binding decisions
+> Verify wording against the optional Step 3h currency check, only if one was run for this report. EDPB guidelines and binding decisions
 > change material interpretation; the AI Act overlay (in force from August 2026 for
 > high-risk systems) is also folding into GDPR enforcement of AI processing. Primary
 > sources:
@@ -117,7 +117,7 @@ Contract). Headings stay verbatim; content below is GDPR-specific.
    classification "Internal — Confidential"; data source "BigID MCP".
 2. **Executive Summary** — overall posture; volumes of personal data and special
    categories; whether RoPA is populated and current; Compliant / Partially compliant /
-   Non-compliant rollup. Fold in any Step 2 search update — particularly recent EDPB
+   Non-compliant rollup. Fold in any Step 3h currency-check finding — particularly recent EDPB
    guidance or material national enforcement actions.
 3. **Regulatory Overview** — material scope (Art. 2) and territorial scope (Art. 3);
    the Article 83 two-tier penalty structure; the rights-based architecture (Art.
@@ -155,4 +155,4 @@ Contract). Headings stay verbatim; content below is GDPR-specific.
 
 - Regulation (EU) 2016/679: https://eur-lex.europa.eu/eli/reg/2016/679/oj
 - European Data Protection Board (EDPB): https://www.edpb.europa.eu/edpb_en
-- Any additional current source surfaced during the Step 2 web search.
+- Any additional current source surfaced during the optional Step 3h currency check (if run).
