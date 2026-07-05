@@ -17,23 +17,55 @@ const GREY_TEXT    = "666666";   // subtitles, captions
 const COLOR_PURPLE = "8735ff";
 const COLOR_PINK   = "ff3592";
 const COLOR_ORANGE = "ff6b35";
-const LOGO_PATH         = "/mnt/skills/user/bigid-pptx/logo_h_transparent.png";
-const GRADIENT_BAR_PATH = "/mnt/skills/user/bigid-pptx/gradient_bar.png";
+const DARK_NAVY    = "1e2133";
+
+// Bundled with this skill — no dependency on any other skill. The generator
+// script runs from /home/claude, so this must be an absolute path, not
+// resolved relative to the script's own location.
+const LOGO_PATH = "/mnt/skills/user/bigid-privacy-posture/assets/logo_white_h.png";
+
 const FONT = "Montserrat";
 
 const FOOTER_H = 0.07;
 const FOOTER_Y = SLIDE_H - FOOTER_H;
-const LOGO_H   = 0.38;
-const LOGO_W   = LOGO_H * (426 / 157);
-const LOGO_X   = SLIDE_W - LOGO_W - 0.25;
-const LOGO_Y   = 0.18;
+
+// logo_white_h.png is 892x333px (~2.68:1). It's a white mark, so it needs a
+// dark backing chip behind it to stay visible on both light (BG_COLOR) and
+// dark-navy (section header / cover) slide backgrounds.
+const LOGO_H   = 0.32;
+const LOGO_W   = LOGO_H * (892 / 333);
+const LOGO_PAD = 0.09;
+const LOGO_CHIP_W = LOGO_W + LOGO_PAD * 2;
+const LOGO_CHIP_H = LOGO_H + LOGO_PAD * 2;
+const LOGO_CHIP_X = SLIDE_W - LOGO_CHIP_W - 0.2;
+const LOGO_CHIP_Y = 0.15;
+const LOGO_X = LOGO_CHIP_X + LOGO_PAD;
+const LOGO_Y = LOGO_CHIP_Y + LOGO_PAD;
 
 function applyBigIDBranding(slide) {
   slide.background = { color: BG_COLOR };
+
+  // Dark chip behind the logo so the white mark reads on any background
+  // (dark-navy section headers as well as the light BG_COLOR body slides).
+  slide.addShape(pres.ShapeType.rect, {
+    x: LOGO_CHIP_X, y: LOGO_CHIP_Y, w: LOGO_CHIP_W, h: LOGO_CHIP_H,
+    fill: { color: DARK_NAVY }, line: { color: DARK_NAVY },
+  });
   slide.addImage({ path: LOGO_PATH, x: LOGO_X, y: LOGO_Y, w: LOGO_W, h: LOGO_H });
-  slide.addImage({ path: GRADIENT_BAR_PATH, x: 0, y: FOOTER_Y, w: SLIDE_W, h: FOOTER_H });
+
+  // Footer gradient bar — drawn as three bands (no image asset needed),
+  // matching the BigID signature purple → pink → orange gradient.
+  const band = SLIDE_W / 3;
+  [COLOR_PURPLE, COLOR_PINK, COLOR_ORANGE].forEach((color, i) => {
+    slide.addShape(pres.ShapeType.rect, {
+      x: band * i, y: FOOTER_Y, w: band, h: FOOTER_H,
+      fill: { color }, line: { color },
+    });
+  });
 }
 ```
+
+> **Note:** `applyBigIDBranding()` references the outer `pres` object (for `pres.ShapeType.rect`) via closure — declare `const pres = new pptxgen();` before the first slide is generated, as shown in "pres initialization" below. This is copied verbatim alongside the rest of this block, so as long as you don't reorder things, `pres` is already in scope by the time this function runs.
 
 ---
 
@@ -181,7 +213,7 @@ s.addShape(pres.ShapeType.rect, {
 const pres = new pptxgen();
 pres.layout = "LAYOUT_16x9";
 // ... add slides ...
-pres.writeFile({ fileName: "/mnt/user-data/outputs/BigID_NIST_Privacy_Posture_Report.pptx" })
+pres.writeFile({ fileName: "/mnt/user-data/outputs/BigID_NIST_Privacy_Posture_Detailed.pptx" })
   .then(() => console.log("✅ PPTX generated successfully."))
   .catch(e => { console.error(e); process.exit(1); });
 ```

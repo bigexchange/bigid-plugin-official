@@ -110,7 +110,7 @@ Use this mapping when analyzing risk cases not explicitly tagged to NIST-P:
 
 ---
 
-## Prioritization Logic for Slide 7 (Top Open Risks)
+## Prioritization Logic for the Executive Summary (Top Open Risks)
 
 Select top 8 risks from the open cases, ranked by:
 1. Risk score (probability × impact) descending
@@ -118,11 +118,13 @@ Select top 8 risks from the open cases, ranked by:
 
 For each selected risk, find its NIST-P mapping using the table above plus any explicit control mappings from the `controls[]` field on the risk case.
 
+Use this ranked list to drive the "new-case callout" on the Executive Summary slide (see SKILL.md Step 4) and to prioritize which cases appear first in each control's findings table.
+
 ---
 
-## Slide 8 — Additional Catalog-Derived Risks
+## Additional Catalog-Derived Risk Patterns
 
-Always check for the following risk patterns in the live data and include them on slide 8 if present:
+Always check for the following risk patterns in the live data. When present, make sure they surface on their mapped control's drilldown slide (SKILL.md Step 4, "one slide per control") and are called out in the Executive Summary's new-case callout if severity is Critical or High:
 
 | Check | What to look for | NIST-P mapping |
 |---|---|---|

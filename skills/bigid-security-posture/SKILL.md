@@ -1,18 +1,16 @@
 ---
 name: bigid-security-posture
 description: >
-  Triages BigID DSPM (Data Security Posture Management) security cases and surfaces the
-  highest-risk ones to act on first — prioritizing credential-exposure cases (passwords,
-  tokens, keys, secrets) above everything else. Use this skill whenever the user asks
-  about their security posture, DSPM cases, "what should I fix first", "top security
-  cases", "what's my biggest data risk", critical findings, exposed passwords/keys/secrets,
-  open-access sensitive data, or wants to act on a security case. Always finish by
-  proposing a concrete action: open a Jira or ServiceNow ticket, assign the case to a
-  user, change case status (acknowledge/silence/resolve), Send to Cortex (XSOAR), or
-  trigger object-level remediation (tombstone, archive/move) — choosing only from the
-  integrations and actions that are actually connected/configured. Pulls live data from
-  the BigID MCP Production server. If the user asks about specific objects/files/items
-  behind a case, drill into the Data Catalog API.
+  Triages BigID DSPM security cases, ranking credential-exposure (passwords, tokens, keys,
+  secrets) above everything else. Use when the user asks about security posture, DSPM
+  cases, "what should I fix first", "top security cases", "biggest data risk", critical
+  findings, exposed passwords/keys/secrets, open-access sensitive data, or wants to act on
+  a case. Always ends with a concrete action -- a Jira/ServiceNow ticket, assignment,
+  status change, or object-level remediation (tombstone/move) -- offering only
+  connected/configured integrations. Pulls live data from BigID MCP Production; drills
+  into the Data Catalog for objects/files behind a case. Covers Security Posture /
+  Actionable Insights (data-source policy) cases ONLY -- NOT privacy risk cases (use
+  bigid-privacy-posture instead).
 compatibility: "Requires: BigID MCP Production server only (Security Posture, Data Catalog, Delegated Remediation, get_tpa_ids tools), bash_tool for parsing large results. No npm/assets/other connectors."
 ---
 
@@ -56,8 +54,8 @@ Confirm before asserting. Specifically:
   `list_servers` / `list_tools` first. Only reference tools that the server actually
   returns.
 - **Discover, don't assume, connected integrations.** Run `get_tpa_ids` and only offer
-  ticketing/SOAR/remediation channels that appear in the result. Never claim Jira,
-  ServiceNow, or Cortex is available without confirming.
+  ticketing/remediation channels that appear in the result. Never claim Jira or
+  ServiceNow is available without confirming.
 - **Discover, don't assume, configured remediation actions.** Call the Remediation
   "list available actions" tool before offering tombstone/move/etc. as options.
 - **Don't invent IDs, counts, policy names, or assignees.** Read them from live results.
@@ -71,6 +69,57 @@ Confirm before asserting. Specifically:
 
 ---
 
+## Licensing & permissions
+
+Check these before doing any triage work — fail fast and clearly if a module isn't
+available, rather than discovering it mid-workflow.
+
+1. **DSPM / Actionable Insights license (required — this skill cannot run without it).**
+   Confirm the `Security Posture` server and its case tools (e.g.
+   `get_actionable_insights_top_critical_cases`) are present via `list_servers` /
+   `list_tools` before Step 1. If the server or its case tools are absent, or a case
+   query errors with a license/entitlement message, stop and tell the user plainly: this
+   tenant doesn't appear to have the DSPM / Actionable Insights module enabled, so
+   security posture triage isn't available. Do not fall back to a different data source.
+
+2. **Remediation license/permission (optional — not every tenant or user has this).**
+   Object-level remediation (tombstone, archive/move, and other Delegated Remediation
+   actions) requires its own license and is not guaranteed just because Security Posture
+   is available. Before ever mentioning tombstone/move/remediation as an option, call:
+   ```
+   server_name = "Delegated Remediation API - AI Agent"
+   tool_name   = "get_proxy_tpa_api_Remediation_settings_actions"
+   arguments   = { "Accept-version": "<as required>" }
+   ```
+   - If this call fails (auth/entitlement error) or returns no enabled actions, **do not
+     offer object-level remediation at all.** Drop it from the action menu — the user
+     still gets the full triage menu (ticket / assign / status change).
+   - If the response is an unhelpful or garbled error (not a clear auth/entitlement
+     message) and the user asks why remediation isn't available, don't try to interpret
+     or repeat the raw error. Tell them it looks like the Remediation module/license may
+     not be enabled for this tenant, and that if that's not the case, they should contact
+     BigID support to check the integration.
+   - If the user directly asks for remediation ("tombstone this", "move these files")
+     and it isn't licensed/enabled for them, say so plainly and redirect to the closest
+     available triage action (e.g. a ticket for someone else to remediate manually, or a
+     status change).
+   - When remediation *is* available, still gate each individual action on its own
+     `isEnabled` flag and `dsSupportedTypes` match (see Field notes) — a license unlocks
+     the category, not every action inside it.
+
+3. **Ticketing integration required before suggesting a ticket.** Never suggest "open a
+   Jira ticket" or "open a ServiceNow ticket" as if either is always available — each
+   needs its own configured integration, checked independently:
+   - **Jira** — confirm via a case's own `ticketMetadata.ticketType`, or by confirming a
+     Jira channel on execution; don't assume it exists just because ServiceNow does.
+   - **ServiceNow** — confirm `ServiceNow IRM Integration` appears in `get_tpa_ids`.
+   - **If neither Jira nor ServiceNow is configured**, don't propose ticket creation at
+     all. Fall back to what's always available on a DSPM case — a **case status change**
+     (acknowledge / silence / resolve) and/or **assignment** to a user — so the user
+     still leaves with a concrete next step.
+
+---
+
 ## Core principle: risk-first ordering
 
 BigID's own `severityLevel` and affected-object count are the starting point, but this
@@ -80,16 +129,20 @@ raw object count.
 
 Priority tiers, highest first:
 
-1. **Tier 1 — Credentials.** Policy/compliance name contains any of:
-   `password`, `token`, `key`, `secret`, `credential`, `private key`. First, ordered
-   among themselves by severity then affected-object count.
+1. **Tier 1 — Credentials.** Policy/compliance name contains any of (case-insensitive
+   substring match): `password`, `passwd`, `token`, `api key`, `apikey`, `access key`,
+   `secret key`, `secret`, `credential`, `private key`, `ssh key`, `oauth token`,
+   `aws access key`, `connection string`. Ordered among themselves by severity then
+   affected-object count.
 2. **Tier 2 — Open-access high-sensitivity data.** Policy name contains `open access`
-   AND (`high sensitivity` OR `financial` OR `payment card` OR `pci` OR `unencrypted`).
+   AND at least one of: `high sensitivity`, `financial`, `payment card`, `pci`,
+   `unencrypted`, `ssn`, `social security`, `bank account`, `phi`, `medical`.
 3. **Tier 3 — Everything else**, ordered by severity (critical > high > medium > low)
    then affected-object count.
 
-Within every tier, break ties by `numberOfAffectedObjects` descending. Full rubric and
-keyword lists in `references/risk-ranking.md`.
+Within every tier, break ties by `numberOfAffectedObjects` descending. The keyword lists
+above are exhaustive for this skill — don't treat any other policy-name substring as a
+Tier 1 or Tier 2 trigger, and don't invent additional keywords on the fly.
 
 ---
 
@@ -124,13 +177,23 @@ arguments   = {
 }
 ```
 
-Optional context tools (use only if asked for breakdowns/counts):
-`get_actionable_insights_cases_by_severity`, `get_actionable_insights_cases_metadata`
-(distinct values for every filterable field), `get_actionable_insights_cases_group_by_policy`.
+Optional context tools (use only if asked for breakdowns/counts) -- always pass
+`caseStatus: "open"` so these counts stay scoped to the same open-case set used
+everywhere else in this skill (calling them with no status filter returns counts across
+*all* statuses, including acknowledged/resolved/silenced, which will not match the ranked
+list or total count above):
+`get_actionable_insights_cases_by_severity` (`arguments = {"caseStatus": "open"}`),
+`get_actionable_insights_cases_metadata` (distinct values for every filterable field --
+no status filter available; note this to the user if asked for exact counts),
+`get_actionable_insights_cases_group_by_policy` (`arguments = {"filter": "[{\"field\":\"caseStatus\",\"value\":\"open\",\"operator\":\"equals\"}]"}`).
 
 **Parsing note:** results come back as a JSON string in `result`. If a call is stored to
-`/mnt/user-data/tool_results/...` because it's too large, parse with `bash_tool` + Python
-and extract only needed fields. See `references/efficient-queries.md`.
+`/mnt/user-data/tool_results/...` because it's too large, parse with `bash_tool` + Python:
+load the file, `json.loads` it, and immediately project down to only the fields you need
+(the list in the `fields` argument above) before doing anything else with it — case
+objects carry large nested control blocks that are irrelevant to triage and will blow the
+context budget if echoed in full. Never paste the raw JSON into the conversation; extract,
+summarize, then discard.
 
 ### Step 2 — Rank with the credential-first rule
 
@@ -157,7 +220,6 @@ arguments = {}
 
 Map result keys to channels:
 - `ServiceNow IRM Integration`   → ServiceNow ticketing
-- `XSOAR Cortex integration app` → "Send to Cortex"
 - `Remediation`                  → object-level remediation (tombstone/move/etc.)
 
 Jira is wired at the case-action level rather than always as a TPA — confirm via a case's
@@ -165,6 +227,12 @@ Jira is wired at the case-action level rather than always as a TPA — confirm v
 
 Then present a menu listing **only** the available channels — see "Action catalog" below.
 Wait for the user to choose before executing (all are writes).
+
+**No integrations configured?** If `get_tpa_ids` shows no ServiceNow, the case has no
+Jira `ticketMetadata`, and Remediation isn't licensed/enabled (see "Licensing &
+permissions" above), the menu collapses to what's always available on a DSPM case:
+**assign to a user** and **case status change** (acknowledge / silence / resolve). Present
+these as the default suggestion rather than leaving the user with no action at all.
 
 ### Step 5 — Drill into specific objects/files (only when asked)
 
@@ -229,17 +297,29 @@ tool_name   = "patch_actionable_insights_case_status_by_caseid"
 arguments   = { "caseId": "<_id>", "caseStatus": "acknowledged", "auditReason": "<why>" }
 ```
 
-**Open a ticket (Jira / ServiceNow) or Send to Cortex** — `write_objects`. `actionType`
-selects the channel (`jira` | `servicenow` | `cortex`), match the user's choice:
+**Open a ticket (Jira / ServiceNow) or sync an existing one** — `write_objects`. This is
+the literal, resolved tool name — the embedded `actionType` and escaped colon are exactly
+how BigID registers this tool; it is not a placeholder to fill in:
 ```
 server_name = "Security Posture"
 tool_name   = "post_actionable_insights_cases_\\::actionType_by_caseid"
-arguments   = { "caseId": "<_id>", "actionType": "<jira|servicenow|cortex>" }
+arguments   = {
+  "caseId": "<_id>",
+  "type": "jira" | "service_now",
+  "subType": "createTicket" | "fetchTicketAndSync"
+}
 ```
+- `type` selects the channel — `jira` or `service_now` (underscore, not `servicenow`).
+- `subType` selects the operation — `createTicket` for a new ticket, or
+  `fetchTicketAndSync` to pull the status of one already linked to the case.
+- This tool's live schema documents only `jira` and `service_now` as supported `type`
+  values — Jira and ServiceNow are the only ticketing channels this skill offers.
+
 After executing, confirm and check for failure (`ticketUrl: "Creation Failed"` → tell the
 user, offer retry or a different channel). Report success only when confirmed.
 
-**Bulk action across a policy group** — `write_objects`:
+**Bulk action across a policy group** — `write_objects`. Same naming pattern as above —
+this is the literal registered tool name, not a template:
 ```
 server_name = "Security Posture"
 tool_name   = "patch_actionable_insights_cases\\::actionType"
@@ -248,10 +328,15 @@ arguments   = {
   "additionalProperties": {
     "field": "assignee"|"caseStatus", "newValue": "<value>",
     "casesFilters": [{"filterField":"policyName","filterValues":["Passwords"]}],
-    "auditReason": "<why>"
+    "auditReason": "<why>",
+    "allCases": false,
+    "userName": "<acting user, if required>"
   }
 }
 ```
+`allCases` (apply to every case matching the filter, not just a listed set) and
+`userName` (the acting user, for audit) are optional per the live schema — include them
+only when relevant.
 
 ### B) Remediation actions — object level (Delegated Remediation API - AI Agent server)
 
@@ -333,9 +418,8 @@ These are verified against the live tenant. Prefer them over guessing; still re-
 
 ### Action availability seen live (re-verify; `isEnabled` governs)
 
-`get_tpa_ids` returned, among others: `ServiceNow IRM Integration`,
-`XSOAR Cortex integration app`, `Remediation`, `Actions App (Scanner Based)`. Mapped
-to enabled remediation actions:
+`get_tpa_ids` returned, among others: `ServiceNow IRM Integration`, `Remediation`,
+`Actions App (Scanner Based)`. Mapped to enabled remediation actions:
 
 - **enabled:** Assign, Create ServiceNow Ticket, Delete, False Positive, Move, Request
   Exception, Request Temporary Exception, Restore, Revoke External Access, Revoke Open
@@ -373,6 +457,58 @@ choose, drill into objects and present the action menu with one recommended acti
 
 ---
 
+## Troubleshooting
+
+Centralized reference for when something doesn't go as expected. Where a topic is
+covered in more depth elsewhere in this file, that's cross-referenced rather than
+repeated in full.
+
+**Empty results.** A case, policy, or data-source query returning zero rows is a valid
+answer, not a failure — say so plainly ("no open critical cases right now") rather than
+retrying with progressively looser filters, unless the user asks for a broader window.
+
+**Large / oversized results.** `get_actionable_insights_all_cases` and Data Catalog
+queries can exceed the response size limit without field projection and paging. Use the
+narrow `fields` list and `limit`/`skip` shown in Step 1. If a result still lands in
+`/mnt/user-data/tool_results/...`, parse it locally per the Step 1 "Parsing note" — never
+paste raw JSON into the conversation.
+
+**Missing fields.** If an expected field is absent (a friendly `SPC-###` case number,
+`ticketMetadata`, `assignee`, etc.), say it's not present rather than filling in a
+plausible-looking guess — see "Do not guess" above.
+
+**API / gateway / connection errors, including transient failures.** If a tool call
+errors or times out:
+- Retry once if it looks transient (timeout, gateway error).
+- If it fails again, report the failure plainly — tool name and what it was trying to do
+  — rather than silently substituting a guess or a different data source.
+- Don't blindly retry a *write* (assign, status change, ticket, remediation). A
+  failed-looking response can sometimes have partially applied; confirm with the user
+  before retrying a write.
+
+**License / module gaps.** See "Licensing & permissions" above for the specific checks
+(DSPM module, Remediation entitlement, ticketing integrations). In every case: stop
+before promising an action the tenant isn't entitled to, say plainly what's missing, and
+offer the closest available alternative — no Remediation license → triage-only menu; no
+ticketing integration configured → status change / assignment instead.
+
+**Ambiguous input.** If the user references a case without enough to identify it
+uniquely ("fix that case", "the one from before" with nothing shown yet this
+conversation), prefer re-running Step 1/Step 3 to surface a short, named candidate list
+they can pick from over asking an open-ended question. Fall back to asking which case
+only when no reasonable candidate set can be produced.
+
+**Tool-name uncertainty.** A few registered tool names look unusual — e.g. the escaped
+colon and embedded parameter name in `post_actionable_insights_cases_\::actionType_by_caseid`
+and `patch_actionable_insights_cases\::actionType`. These are confirmed live (via
+`list_tools`) as the literal, correct tool names — not placeholders to fill in. If a call
+to any tool in this file ever fails with a "not found" or schema-mismatch error, re-run
+`list_tools` for the relevant server and use its live-returned name/schema over what's
+written here, since BigID's Actions Center configuration can add or change fields over
+time — re-verify with `list_tools` whenever a call behaves unexpectedly.
+
+---
+
 ## Guardrails
 
 - **BigID MCP only.** No web, browser, or other connectors for posture data or actions.
@@ -385,5 +521,6 @@ choose, drill into objects and present the action menu with one recommended acti
   `SPC-###` to the user. Keep both straight.
 - **Verify, don't assume.** Report success only when the response confirms it.
 
-See `references/efficient-queries.md` (query/field details, catalog drilldown) and
-`references/risk-ranking.md` (ranking rubric and keyword lists).
+All ranking rubric, query, and catalog-drilldown detail referenced above now lives
+directly in this file (see "Core principle" and "Workflow" sections) — there are no
+separate reference files to consult.
