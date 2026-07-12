@@ -338,6 +338,18 @@ arguments   = {
 `userName` (the acting user, for audit) are optional per the live schema — include them
 only when relevant.
 
+**Confirm scope before firing.** This call can silently touch far more cases than the
+handful the user has seen. Before executing:
+1. Resolve `casesFilters` against the live case set first (e.g. re-run the Step 1 query
+   with the same filter) and tell the user the exact count it will affect — "this will
+   update N cases matching policy `Passwords`" — not a guess.
+2. If `allCases: true`, say so explicitly ("this applies to every open case matching this
+   filter, not just the ones listed above") since that widens scope beyond whatever the
+   user has seen on screen.
+3. Get explicit user confirmation of that stated scope before calling `write_objects`.
+4. After executing, report how many cases were actually updated per the response —
+   don't assume it matches the pre-confirmed count.
+
 ### B) Remediation actions — object level (Delegated Remediation API - AI Agent server)
 
 These **modify or relocate data**. Always: (1) confirm the integration/action is
@@ -515,8 +527,10 @@ time — re-verify with `list_tools` whenever a call behaves unexpectedly.
 - **Read before write.** Rank and present (Steps 1-3) before proposing actions.
 - **Discover before offering.** `get_tpa_ids` for channels; Remediation list-actions for
   remediation options. Offer only what's confirmed.
-- **Confirm writes**, especially object-level remediation (it changes data). Get explicit
-  user confirmation of the target case/objects and channel first.
+- **Confirm writes**, especially object-level remediation (it changes data) and bulk
+  policy-group updates (they can silently affect more cases than shown). Get explicit
+  user confirmation of the target case/objects (or the resolved count + `allCases` scope
+  for bulk actions) and channel first.
 - **Use the right caseId.** Write endpoints take the Mongo `_id`; show the friendly
   `SPC-###` to the user. Keep both straight.
 - **Verify, don't assume.** Report success only when the response confirms it.

@@ -4,7 +4,7 @@ The BigID Plugin connects your AI agent directly to your BigID environment. Get 
 
 ## Skills
 
-Skills are context-aware instruction sets that activate automatically when relevant. When you ask about security cases, privacy posture, or compliance evidence, the right skill kicks in — no slash commands needed. Each skill knows which BigID APIs to call, how to interpret the results, and what remediation actions are available.
+Skills are context-aware instruction sets that activate automatically when relevant. When you ask about security cases, compliance evidence, or AI risk, the right skill kicks in — no slash commands needed. Each skill knows which BigID APIs to call, how to interpret the results, and what remediation actions are available.
 
 ## MCP Server
 
@@ -18,8 +18,8 @@ The plugin connects to the BigID MCP Server, which provides live API access to y
 | Skill | Triggers | Description |
 |---|---|---|
 | `/bigid:bigid-security-posture` | security posture, DSPM, security cases, exposed credentials, top cases, what should I fix first | DSPM triage — ranks credential-exposure and policy cases by risk, drives remediation |
-| `/bigid:bigid-privacy-posture` | privacy posture, NIST-P, NIST-P score, privacy risk, posture deck, refresh the posture deck | Generates a BigID-branded NIST Privacy Framework posture deck (PPTX) from live BigID data |
 | `/bigid:bigid-regulations-and-frameworks` | compliance report, GDPR, HIPAA, EO 14117, OSFI B-13, prove compliance, audit evidence, check us against [regulation] | Generates a regulation-specific compliance evidence PDF from live BigID data — supports named regulations, laws, executive orders, and custom uploaded policies |
+| `/bigid:bigid-shadowai-and-ai-risk` | AI risk, Shadow AI, AI posture, ungoverned AI, LLM data exposure, vector store, ChatGPT, OpenAI, Hugging Face | Triages DSPM cases scoped to AI risk and Shadow AI — surfaces credentials and regulated data inside AI platforms and vector stores |
 
 ## Installation
 
