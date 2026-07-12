@@ -1,7 +1,7 @@
 {
   "name": "bigid",
   "description": "The BigID plugin includes the official BigID MCP connector with a set of optimized skills to help explore, manage, and action your data",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "author": {
     "name": "BigID",
     "email": "support@bigid.com"
