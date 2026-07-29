@@ -1,0 +1,29 @@
+{
+  "skill_name": "bigid-access-graph",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Using the BigID MCP, who has access to the sensitive files in LocalWindowsSMB_Source? I need to see who can read or modify them - show me the access relationships visually.",
+      "expected_output": "Interactive HTML access graph showing identities connected to LocalWindowsSMB_Source resources with access-level edges, plus a direct text answer naming who has read/write access",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "show me our open access and external sharing risk across our data sources - i want an access graph i can click around in",
+      "expected_output": "Interactive HTML access graph spanning multiple data sources with open-access and external-identity risk highlighted, filters, and a risk findings summary",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "graph out which groups can reach our Restricted-tagged data and whether users get to it directly or through those groups",
+      "expected_output": "Access graph scoped to Restricted sensitivity resources with direct vs via-group grant paths distinguished (solid vs dashed edges) and sensitivity labels from tags",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "run the weekly access graph for the SMB shares and tell me what changed since last week",
+      "expected_output": "Access graph with --snapshot-dir enabled, changes-since-last-run panel populated, and summary of new/removed grants and newly open resources",
+      "files": []
+    }
+  ]
+}
