@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>__TITLE__</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+<style>
+  :root{
+    --bg:#f7f7fb; --panel:#ffffff; --ink:#1a1a2e; --muted:#6b7280; --line:#e5e7eb;
+    --purple:#6b4eff; --pink:#ff3e8a; --orange:#ff8a3d; --red:#e11d48; --green:#059669;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  header{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header h1{font-size:17px;font-weight:700;background:linear-gradient(90deg,var(--purple),var(--pink),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .stats{display:flex;gap:14px;margin-left:auto;font-size:12px;color:var(--muted)}
+  .stats b{color:var(--ink);font-size:14px;display:block;text-align:center}
+  main{flex:1;display:flex;min-height:0}
+  #sidebar{width:270px;background:var(--panel);border-right:1px solid var(--line);padding:14px;overflow-y:auto;flex-shrink:0}
+  #cywrap{flex:1;min-width:0;position:relative}
+  #cy{position:absolute;inset:0}
+  #zoomCtrls{position:absolute;bottom:16px;left:16px;display:flex;flex-direction:column;gap:6px;z-index:10}
+  #zoomCtrls button{width:34px;height:34px;border:1px solid var(--line);border-radius:8px;background:var(--panel);
+    font-size:17px;font-weight:600;color:var(--ink);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.08);line-height:1}
+  #zoomCtrls button:hover{border-color:var(--purple);color:var(--purple)}
+  #detail{width:300px;min-width:260px;max-width:820px;background:var(--panel);border-left:1px solid var(--line);padding:16px;overflow-y:auto;flex-shrink:0;display:none;position:relative}
+  #detail.open{display:block}
+  #dragHandle{position:absolute;left:0;top:0;bottom:0;width:7px;cursor:col-resize;z-index:5}
+  #dragHandle:hover,#dragHandle.dragging{background:linear-gradient(180deg,var(--purple),var(--pink));opacity:.35}
+  #expandDetail{float:right;background:none;border:none;font-size:14px;cursor:pointer;color:var(--muted);margin-right:2px;padding:2px}
+  #expandDetail:hover{color:var(--purple)}
+  body.resizing{user-select:none;cursor:col-resize}
+  .section{margin-bottom:18px}
+  .section h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px}
+  input[type=search]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;outline:none}
+  input[type=search]:focus{border-color:var(--purple)}
+  label.chk{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;cursor:pointer}
+  .legend-dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex-shrink:0}
+  .pill{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;margin:2px 3px 2px 0}
+  .pill.read{background:#eef2ff;color:#4338ca}.pill.write{background:#fff1f2;color:#be123c}
+  .pill.execute{background:#fefce8;color:#a16207}.pill.delete{background:#fdf2f8;color:#be185d}
+  .pill.shared{background:#f1f5f9;color:#475569}
+  .risk{font-size:12px;padding:7px 9px;border-radius:8px;margin-bottom:6px;line-height:1.35;cursor:pointer}
+  .risk.high{background:#fff1f2;border-left:3px solid var(--red)}
+  .risk.medium{background:#fffbeb;border-left:3px solid var(--orange)}
+  .risk:hover{filter:brightness(0.97)}
+  .risk .risk-body{display:none;margin-top:7px;border-top:1px solid rgba(0,0,0,.07);padding-top:7px;cursor:default}
+  .risk.expanded .risk-body{display:block}
+  .case{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 8px;margin-bottom:6px}
+  .case .cl{font-weight:600;font-size:11.5px;margin-bottom:3px}
+  .case .cm{font-size:10.5px;color:var(--muted);margin-bottom:4px}
+  .case .cd{font-size:10.5px;color:var(--muted);line-height:1.4;margin-bottom:5px}
+  .case a{color:var(--purple);font-size:11px;font-weight:600;text-decoration:none;margin-right:10px}
+  .case a:hover{text-decoration:underline}
+  .sev{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;text-transform:uppercase;margin-right:5px}
+  .sev.critical{background:#fff1f2;color:var(--red)}.sev.high{background:#fff7ed;color:#c2410c}
+  .sev.medium{background:#fffbeb;color:#a16207}.sev.low{background:#f0fdf4;color:var(--green)}
+  #resetBtn{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);
+    font-size:12.5px;font-weight:600;color:var(--purple);cursor:pointer;margin-bottom:14px}
+  #resetBtn:hover{border-color:var(--purple);background:#faf8ff}
+  #detail h2{font-size:15px;margin-bottom:2px;word-break:break-word}
+  #detail .sub{font-size:12px;color:var(--muted);margin-bottom:12px;word-break:break-all}
+  .kv{font-size:12.5px;display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--line)}
+  .kv span:first-child{color:var(--muted);flex-shrink:0}
+  .kv span:last-child{text-align:right;word-break:break-word}
+  .tag{display:inline-block;font-size:10.5px;background:#f3f4f6;border-radius:6px;padding:2px 6px;margin:2px 3px 0 0}
+  .flag{display:inline-block;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;margin:0 4px 8px 0}
+  .flag.ext{background:#fff1f2;color:var(--red)}.flag.open{background:#fffbeb;color:#b45309}.flag.sens{background:#fdf4ff;color:#a21caf}
+  button.link{background:none;border:none;color:var(--purple);font-size:12px;cursor:pointer;padding:0;text-decoration:underline}
+  #closeDetail{float:right;background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted)}
+  .gradbar{height:4px;background:linear-gradient(90deg,var(--purple),var(--pink),var(--orange));flex-shrink:0}
+  .conn{font-size:12px;padding:5px 8px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+  .conn:hover{background:#f3f4f6}
+  .conn .who{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .count-badge{font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>__TITLE__</h1>
+  <div class="stats" id="stats"></div>
+</header>
+<main>
+  <div id="sidebar">
+    <button id="resetBtn">↺ Reset filters &amp; view</button>
+    <div class="section">
+      <h3>Search</h3>
+      <input type="search" id="search" placeholder="user, group, or resource…">
+    </div>
+    <div class="section">
+      <h3>Show</h3>
+      <label class="chk"><input type="checkbox" class="ntype" value="user" checked><span class="legend-dot" style="background:var(--purple)"></span>Users</label>
+      <label class="chk"><input type="checkbox" class="ntype" value="group" checked><span class="legend-dot" style="background:var(--pink)"></span>Groups</label>
+      <label class="chk"><input type="checkbox" class="ntype" value="link" checked><span class="legend-dot" style="background:#0d9488"></span>Sharing links</label>
+      <label class="chk"><input type="checkbox" class="ntype" value="resource" checked><span class="legend-dot" style="background:var(--orange)"></span>Resources</label>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">
+        <span style="letter-spacing:2px">──</span> direct&nbsp;&nbsp;
+        <span style="letter-spacing:1px">╌╌</span> via group&nbsp;&nbsp;
+        <span style="letter-spacing:1px">┈┈</span> inherited
+      </div>
+    </div>
+    <div class="section">
+      <h3>Grant path</h3>
+      <label class="chk"><input type="checkbox" class="deriv" value="direct" checked>Direct grants</label>
+      <label class="chk"><input type="checkbox" class="deriv" value="via-group" checked>Via group membership</label>
+      <label class="chk"><input type="checkbox" class="deriv" value="inherited" checked>Inherited (parent folder)</label>
+      <label class="chk"><input type="checkbox" class="deriv" value="group-grant" checked>Group grants</label>
+      <label class="chk"><input type="checkbox" class="deriv" value="sharing" checked>Sharing links</label>
+      <label class="chk" id="memberFilterRow" style="display:none"><input type="checkbox" class="deriv" value="member" checked>Membership edges</label>
+    </div>
+    <div class="section" id="changesSection" style="display:none">
+      <h3>Changes since last run</h3>
+      <div id="changes"></div>
+    </div>
+    <div class="section">
+      <h3>Access level</h3>
+      <label class="chk"><input type="checkbox" class="acc" value="READ" checked>Read</label>
+      <label class="chk"><input type="checkbox" class="acc" value="WRITE" checked>Write</label>
+      <label class="chk"><input type="checkbox" class="acc" value="EXECUTE" checked>Execute</label>
+      <label class="chk"><input type="checkbox" class="acc" value="DELETE" checked>Delete</label>
+      <label class="chk"><input type="checkbox" class="acc" value="SHARED" checked>Shared (unspecified)</label>
+    </div>
+    <div class="section">
+      <h3>Risk filters</h3>
+      <label class="chk"><input type="checkbox" id="fExternal">External identities only</label>
+      <label class="chk"><input type="checkbox" id="fOpen">Open-access resources only</label>
+      <label class="chk"><input type="checkbox" id="fSensitive">Sensitive resources only</label>
+      <label class="chk" id="staleFilterRow" style="display:none"><input type="checkbox" id="fStale">Stale (&gt;90d unused) only</label>
+    </div>
+    <div class="section">
+      <h3>Risk findings</h3>
+      <div id="risks"></div>
+    </div>
+  </div>
+  <div id="cywrap">
+    <div id="cy"></div>
+    <div id="zoomCtrls">
+      <button id="zoomIn" title="Zoom in">+</button>
+      <button id="zoomOut" title="Zoom out">−</button>
+      <button id="zoomFit" title="Fit to view" style="font-size:13px">⤢</button>
+    </div>
+  </div>
+  <div id="detail">
+    <div id="dragHandle" title="Drag to resize"></div>
+    <button id="closeDetail">×</button>
+    <button id="expandDetail" title="Expand / restore panel">⇔</button>
+    <div id="detailBody"></div>
+  </div>
+</main>
+<div class="gradbar"></div>
+<script>
+const DATA = __GRAPH_DATA__;
+
+const stats = DATA.stats;
+document.getElementById('stats').innerHTML =
+  `<div><b>${stats.users}</b>users</div><div><b>${stats.groups}</b>groups</div>
+   ${stats.links?`<div><b>${stats.links}</b>links</div>`:''}
+   <div><b>${stats.resources}</b>resources</div>
+   <div><b>${stats.directGrants??0}</b>direct</div>
+   <div><b>${stats.viaGroup??0}</b>via group</div>
+   <div><b style="color:var(--red)">${stats.external}</b>external</div>
+   <div><b style="color:#b45309">${stats.openAccess}</b>open access</div>
+   ${DATA.hasActivity?`<div><b style="color:#a16207">${stats.stale}</b>stale</div>`:''}`;
+
+// conditional UI: only show what the environment's data supports
+if(DATA.hasActivity) document.getElementById('staleFilterRow').style.display='flex';
+if(DATA.hasMembership) document.getElementById('memberFilterRow').style.display='flex';
+if(DATA.changes){
+  const c=DATA.changes, k=c.counts;
+  const li=(arr,sign,color)=>arr.map(t=>`<div class="risk" style="background:#fafafa;border-left:3px solid ${color}">${sign} ${esc(t)}</div>`).join('');
+  document.getElementById('changes').innerHTML=
+    `<div style="font-size:11px;color:var(--muted);margin-bottom:6px">vs ${esc(c.prevDate)}: +${k.newEdges} grants, −${k.removedEdges} removed, ${k.newOpenAccess} newly open, ${k.newExternal} new external</div>`
+    +li(c.newOpenAccess,'⚠','var(--orange)')+li(c.newExternal,'⚠','var(--red)')
+    +li(c.newEdges,'+','var(--green)')+li(c.removedEdges,'−','#9ca3af');
+  document.getElementById('changesSection').style.display='block';
+}
+
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+// ---------- clickable risk findings with DSPM case insight ----------
+function caseCard(c){
+  const links=[];
+  if(c.url) links.push(`<a href="${esc(c.url)}" target="_blank" rel="noopener">Open case in BigID ↗</a>`);
+  if(c.ticketUrl) links.push(`<a href="${esc(c.ticketUrl)}" target="_blank" rel="noopener">Ticket ${esc(c.ticketKey||'')} ↗</a>`);
+  return `<div class="case">
+    <div class="cl"><span class="sev ${esc(c.severity||'')}">${esc(c.severity||'')}</span>${esc(c.label||'')}</div>
+    <div class="cm">${c.affected!=null?c.affected+' affected objects · ':''}${c.assignee?'assignee: '+esc(c.assignee)+' · ':''}status: ${esc(c.status||'open')}</div>
+    ${c.description?`<div class="cd">${esc(c.description)}…</div>`:''}
+    ${links.join('')||'<span style="font-size:10.5px;color:var(--muted)">No deep link configured — case ID '+esc(c.id||'')+'</span>'}
+  </div>`;
+}
+const riskDiv = document.getElementById('risks');
+riskDiv.innerHTML = DATA.risks.length
+  ? DATA.risks.map((r,i)=>`<div class="risk ${r.level}" data-i="${i}">
+      <div class="risk-head">${esc(r.text)} <span style="color:var(--muted)">▾</span></div>
+      <div class="risk-body">${(r.cases&&r.cases.length)
+        ? `<div style="font-size:10.5px;color:var(--muted);margin-bottom:5px">Related open DSPM cases on ${esc(r.source||'this source')}:</div>`+r.cases.map(caseCard).join('')
+        : '<div style="font-size:11px;color:var(--muted)">No open DSPM cases found for this data source.</div>'}</div>
+    </div>`).join('')
+  : '<div style="font-size:12px;color:var(--muted)">No high-risk findings in scope.</div>';
+riskDiv.querySelectorAll('.risk').forEach(el=>{
+  el.querySelector('.risk-head').addEventListener('click',()=>{
+    el.classList.toggle('expanded');
+    const r=DATA.risks[+el.dataset.i];
+    if(r.nodeId){
+      const n=cy.getElementById(r.nodeId);
+      if(n.length && !n.hasClass('hidden')){
+        showDetail(n);
+        cy.animate({center:{eles:n},duration:250});
+      }
+    }
+  });
+});
+
+const elements = [];
+for (const n of DATA.nodes) elements.push({data: {...n}});
+for (const e of DATA.edges) elements.push({data: {...e, accessStr: e.access.join('/'),
+  hasWrite: e.access.some(a=>a==='WRITE'||a==='DELETE')}});
+
+const cy = cytoscape({
+  container: document.getElementById('cy'),
+  elements,
+  style: [
+    {selector:'node',style:{
+      'label':'data(label)','font-size':9,'color':'#374151',
+      'text-valign':'bottom','text-margin-y':4,'text-max-width':110,'text-wrap':'ellipsis',
+      'width':n=>14+Math.min(n.data('degree')*1.6,22),'height':n=>14+Math.min(n.data('degree')*1.6,22),
+      'border-width':1.5,'border-color':'#fff'}},
+    {selector:'node[type="user"]',style:{'background-color':'#6b4eff'}},
+    {selector:'node[type="group"]',style:{'background-color':'#ff3e8a','shape':'round-rectangle'}},
+    {selector:'node[type="link"]',style:{'background-color':'#0d9488','shape':'round-tag'}},
+    {selector:'node[type="resource"]',style:{'background-color':'#ff8a3d','shape':'round-diamond'}},
+    {selector:'node[?external]',style:{'border-width':3,'border-color':'#e11d48'}},
+    {selector:'node[?openAccess]',style:{'border-width':3,'border-color':'#f59e0b','border-style':'double'}},
+    {selector:'edge',style:{'width':1.2,'line-color':'#c7cbd4','curve-style':'bezier',
+      'target-arrow-shape':'triangle','target-arrow-color':'#c7cbd4','arrow-scale':0.7,
+      'label':'data(accessStr)','font-size':7,'color':'#9ca3af','text-rotation':'autorotate',
+      'text-background-color':'#f7f7fb','text-background-opacity':0.9,'text-background-padding':1}},
+    {selector:'edge[?hasWrite]',style:{'line-color':'#f0a5bc','target-arrow-color':'#f0a5bc'}},
+    {selector:'edge[deriv="via-group"]',style:{'line-style':'dashed','line-dash-pattern':[5,4]}},
+    {selector:'edge[deriv="inherited"]',style:{'line-style':'dashed','line-dash-pattern':[2,4],'line-color':'#b8bfd0','target-arrow-color':'#b8bfd0'}},
+    {selector:'edge[deriv="sharing"]',style:{'line-color':'#7fd4c4','target-arrow-color':'#7fd4c4'}},
+    {selector:'edge[deriv="member"]',style:{'line-style':'dotted','line-color':'#f3a6c4','target-arrow-shape':'none','width':1,'label':''}},
+    {selector:'edge[deriv="member"].hl',style:{'label':'member'}},
+    {selector:'node[?isFolder]',style:{'shape':'round-rectangle','border-style':'double','border-width':2.5,'border-color':'#d97706'}},
+    {selector:'node.colmode[type="user"]',style:{'text-valign':'center','text-halign':'left','text-margin-x':-6,'text-margin-y':0}},
+    {selector:'node.colmode[type="group"]',style:{'text-valign':'center','text-halign':'left','text-margin-x':-6,'text-margin-y':0}},
+    {selector:'node.colmode[type="link"]',style:{'text-valign':'center','text-halign':'left','text-margin-x':-6,'text-margin-y':0}},
+    {selector:'node.colmode[type="resource"]',style:{'text-valign':'center','text-halign':'right','text-margin-x':6,'text-margin-y':0,'text-max-width':240}},
+    {selector:'edge.colmode',style:{'curve-style':'straight','label':''}},
+    {selector:'edge.colmode.hl',style:{'label':'data(accessStr)'}},
+    {selector:'.dim',style:{'opacity':0.12}},
+    {selector:'.hl',style:{'border-color':'#1a1a2e','border-width':3,'opacity':1}},
+    {selector:'edge.hl',style:{'line-color':'#6b4eff','target-arrow-color':'#6b4eff','width':2.2,'opacity':1,'color':'#4338ca'}},
+    {selector:'.hidden',style:{'display':'none'}},
+  ],
+  layout: {name:'preset'}
+});
+
+// ---------- layout: layered columns ----------
+function columnPositions(){
+  const colOf={user:0,group:1,link:1,resource:2};
+  const cols={0:[],1:[],2:[]};
+  cy.nodes().filter(n=>!n.hasClass('hidden')).forEach(n=>cols[colOf[n.data('type')]].push(n));
+  cols[0].sort((a,b)=>b.data('degree')-a.data('degree')||a.data('label').localeCompare(b.data('label')));
+  cols[1].sort((a,b)=>b.data('degree')-a.data('degree')||a.data('label').localeCompare(b.data('label')));
+  cols[2].sort((a,b)=>(a.data('source')||'').localeCompare(b.data('source')||'')||a.data('label').localeCompare(b.data('label')));
+  const spacing=42, colGap=430, pos={};
+  for(const c of [0,1,2]){
+    const list=cols[c], off=-((list.length-1)*spacing)/2;
+    list.forEach((n,i)=>pos[n.id()]={x:c*colGap, y:off+i*spacing});
+  }
+  return pos;
+}
+function applyColumns(){
+  const pos=columnPositions();
+  cy.elements().addClass('colmode');
+  cy.layout({name:'preset',positions:n=>pos[n.id()],animate:true,animationDuration:300,fit:true,padding:40}).run();
+}
+applyColumns();
+
+// ---------- zoom controls (work in both layouts) ----------
+function zoomBy(f){
+  cy.animate({zoom:{level:cy.zoom()*f,renderedPosition:{x:cy.width()/2,y:cy.height()/2}},duration:150});
+}
+document.getElementById('zoomIn').onclick=()=>zoomBy(1.3);
+document.getElementById('zoomOut').onclick=()=>zoomBy(1/1.3);
+document.getElementById('zoomFit').onclick=()=>cy.animate({fit:{eles:cy.elements().not('.hidden'),padding:40},duration:200});
+
+// ---------- filtering ----------
+function applyFilters(){
+  const types = new Set([...document.querySelectorAll('.ntype:checked')].map(c=>c.value));
+  const accs = new Set([...document.querySelectorAll('.acc:checked')].map(c=>c.value));
+  const derivs = new Set([...document.querySelectorAll('.deriv:checked')].map(c=>c.value));
+  const extOnly = document.getElementById('fExternal').checked;
+  const openOnly = document.getElementById('fOpen').checked;
+  const sensOnly = document.getElementById('fSensitive').checked;
+  const staleOnly = document.getElementById('fStale').checked;
+  cy.batch(()=>{
+    cy.edges().forEach(e=>{
+      const show = e.data('access').some(a=>accs.has(a)) && derivs.has(e.data('deriv')||'direct');
+      e.toggleClass('hidden', !show);
+    });
+    cy.nodes().forEach(n=>{
+      const t = n.data('type');
+      let show = types.has(t);
+      if (show && t!=='resource' && extOnly && !n.data('external')) show=false;
+      if (show && t==='resource' && openOnly && !n.data('openAccess')) show=false;
+      if (show && t==='resource' && sensOnly && !n.data('sensitive')) show=false;
+      if (show && t==='resource' && staleOnly && !((n.data('staleDays')??-1)>90)) show=false;
+      n.toggleClass('hidden', !show);
+    });
+    // hide edges with hidden endpoints; when risk filters active, keep identities connected to visible resources
+    cy.edges().forEach(e=>{
+      if (e.source().hasClass('hidden')||e.target().hasClass('hidden')) e.addClass('hidden');
+    });
+    if (openOnly||sensOnly||extOnly||staleOnly){
+      // drop orphaned nodes for clarity
+      cy.nodes().forEach(n=>{
+        if (!n.hasClass('hidden') && n.connectedEdges().every(e=>e.hasClass('hidden')) && n.degree()>0)
+          n.addClass('hidden');
+      });
+    }
+  });
+  // re-pack columns and re-fit so any filter change (select or deselect) shows the full current view
+  applyColumns();
+}
+document.querySelectorAll('.ntype,.acc,.deriv,#fExternal,#fOpen,#fSensitive,#fStale')
+  .forEach(el=>el.addEventListener('change',applyFilters));
+
+// ---------- search ----------
+let searchTimer;
+document.getElementById('search').addEventListener('input',ev=>{
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(()=>{
+    const q=ev.target.value.trim().toLowerCase();
+    cy.elements().removeClass('dim hl');
+    if(!q){fitAll();return;}
+    const hits=cy.nodes().filter(n=>
+      (n.data('label')||'').toLowerCase().includes(q)||
+      (n.data('email')||'').toLowerCase().includes(q)||
+      (n.data('fqn')||'').toLowerCase().includes(q));
+    if(hits.length){
+      cy.elements().addClass('dim');
+      const hood=hits.closedNeighborhood();
+      hood.removeClass('dim').addClass('hl');
+      hits.removeClass('dim');
+      cy.animate({fit:{eles:hood,padding:60},duration:300});
+    }
+  },200);
+});
+
+// ---------- trace + detail ----------
+function fitAll(){cy.animate({fit:{eles:cy.elements().not('.hidden'),padding:40},duration:250});}
+function resetAll(){
+  document.getElementById('search').value='';
+  document.querySelectorAll('.ntype,.acc').forEach(c=>c.checked=true);
+  ['fExternal','fOpen','fSensitive','fStale'].forEach(id=>document.getElementById(id).checked=false);
+  cy.elements().removeClass('dim hl');
+  closeDetail();
+  applyFilters(); // re-packs columns and fits
+}
+document.getElementById('resetBtn').onclick=resetAll;
+cy.on('tap','node',ev=>showDetail(ev.target));
+// deselect (tap on empty background): clear highlights, close panel, return to full view
+cy.on('tap',ev=>{if(ev.target===cy){cy.elements().removeClass('dim hl');closeDetail();fitAll();}});
+document.getElementById('closeDetail').onclick=closeDetail;
+function closeDetail(){document.getElementById('detail').classList.remove('open')}
+
+// ---------- resizable detail panel (drag left edge, or ⇔ to toggle wide) ----------
+(function(){
+  const panel=document.getElementById('detail');
+  const handle=document.getElementById('dragHandle');
+  const DEFAULT_W=300, WIDE_W=560;
+  handle.addEventListener('mousedown',e=>{
+    e.preventDefault();
+    const startX=e.clientX, startW=panel.offsetWidth;
+    handle.classList.add('dragging');
+    document.body.classList.add('resizing');
+    const move=ev=>{panel.style.width=Math.min(820,Math.max(260,startW+(startX-ev.clientX)))+'px';cy.resize();};
+    const up=()=>{
+      handle.classList.remove('dragging');
+      document.body.classList.remove('resizing');
+      document.removeEventListener('mousemove',move);
+      document.removeEventListener('mouseup',up);
+      cy.resize();
+    };
+    document.addEventListener('mousemove',move);
+    document.addEventListener('mouseup',up);
+  });
+  document.getElementById('expandDetail').onclick=()=>{
+    const wide=panel.offsetWidth>(DEFAULT_W+WIDE_W)/2;
+    panel.style.width=(wide?DEFAULT_W:WIDE_W)+'px';
+    cy.resize();
+  };
+})();
+
+function trace(node){
+  cy.elements().addClass('dim').removeClass('hl');
+  const hood=node.closedNeighborhood();
+  hood.removeClass('dim');
+  node.addClass('hl');
+  hood.edges().addClass('hl');
+}
+
+function accPills(access){
+  return access.map(a=>`<span class="pill ${a.toLowerCase()}">${a}</span>`).join('');
+}
+
+function showDetail(node){
+  trace(node);
+  const d=node.data();
+  const el=document.getElementById('detail');
+  const body=document.getElementById('detailBody');
+  let flags='';
+  if(d.external) flags+='<span class="flag ext">EXTERNAL</span>';
+  if(d.openAccess) flags+='<span class="flag open">OPEN ACCESS</span>';
+  if(d.sensitive) flags+=`<span class="flag sens">${esc((d.sensLabel||'SENSITIVE').toUpperCase())}</span>`;
+  if((d.staleDays??-1)>90) flags+=`<span class="flag open" style="background:#fef3c7;color:#92400e">UNUSED ${d.staleDays}D</span>`;
+  let kv='';
+  const add=(k,v)=>{if(v!==undefined&&v!==null&&v!=='')kv+=`<div class="kv"><span>${k}</span><span>${esc(v)}</span></div>`};
+  if(d.type==='resource'){
+    add('Data source',d.source); add('Type',d.objectType);
+    if(d.sensLabel)add('Sensitivity',d.sensLabel);
+    add('PII findings',d.pii); if(d.sizeInBytes)add('Size',fmtBytes(d.sizeInBytes));
+    if(d.isFolder)add('Files rolled up',d.fileCount);
+    if(d.lastOpened)add('Last opened',String(d.lastOpened).slice(0,10)+(d.lastAccessedBy?' by '+d.lastAccessedBy:''));
+  } else {
+    add('Email / ID',d.email); add('Directory source',d.dataSource);
+    if(d.membersCount!=null)add('Members',d.membersCount);
+  }
+  add('Connections',d.degree);
+  let attrs='';
+  if(d.type==='resource'&&(d.attributes||[]).length)
+    attrs=`<div class="section" style="margin-top:12px"><h3>Classifiers found</h3>`+
+      d.attributes.map(a=>`<span class="tag">${esc(a.replace('classifier.',''))}</span>`).join('')+`</div>`;
+  if(d.isFolder&&(d.files||[]).length)
+    attrs+=`<div class="section" style="margin-top:12px"><h3>Files in this folder (same ACL)</h3>`+
+      d.files.map(f=>`<span class="tag">${esc(f)}</span>`).join('')+
+      (d.fileCount>d.files.length?`<span class="tag">+${d.fileCount-d.files.length} more</span>`:'')+`</div>`;
+  // connections list
+  const conns=[];
+  node.connectedEdges().forEach(e=>{
+    const other=e.source().id()===node.id()?e.target():e.source();
+    conns.push({label:other.data('label'),id:other.id(),access:e.data('access'),
+      deriv:e.data('deriv')||'direct',via:e.data('via')||[]});
+  });
+  conns.sort((a,b)=>b.access.length-a.access.length);
+  const derivChip=c=>{
+    if(c.deriv==='via-group') return `<span class="pill shared" title="Access via group membership">via ${esc(c.via.slice(0,2).join(', ')||'group')}</span>`;
+    if(c.deriv==='inherited') return `<span class="pill shared" title="Inherited from parent folder ACL">inherited${c.via.length?' · '+esc(c.via.slice(0,2).join(', ')):''}</span>`;
+    if(c.deriv==='direct'&&node.data('type')!=='group') return `<span class="pill read" style="background:#f0fdf4;color:var(--green)" title="Directly granted">direct</span>`;
+    if(c.deriv==='sharing') return `<span class="pill shared" style="background:#f0fdfa;color:#0d9488" title="Sharing link">link</span>`;
+    if(c.deriv==='member') return `<span class="pill shared" title="Group membership">member</span>`;
+    return '';
+  };
+  const connHtml=conns.slice(0,60).map(c=>
+    `<div class="conn" data-nid="${esc(c.id)}"><span class="who">${esc(c.label)}</span><span>${accPills(c.access)}${derivChip(c)}</span></div>`).join('');
+  body.innerHTML=`<h2>${esc(d.label)}</h2><div class="sub">${esc(d.fqn||d.email||'')}</div>${flags}${kv}${attrs}
+    <div class="section" style="margin-top:12px"><h3>${d.type==='resource'?'Who has access':'Can access'} (${conns.length})</h3>${connHtml||'<div style="font-size:12px;color:var(--muted)">None in scope</div>'}</div>`;
+  body.querySelectorAll('.conn').forEach(c=>c.onclick=()=>{
+    const n=cy.getElementById(c.dataset.nid);
+    if(n.length){showDetail(n);cy.animate({center:{eles:n},duration:250});}
+  });
+  el.classList.add('open');
+}
+function fmtBytes(b){const u=['B','KB','MB','GB','TB'];let i=0;while(b>=1024&&i<u.length-1){b/=1024;i++}return b.toFixed(1)+' '+u[i]}
+</script>
+</body>
+</html>

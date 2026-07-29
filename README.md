@@ -20,6 +20,8 @@ The plugin connects to the BigID MCP Server, which provides live API access to y
 | `/bigid:bigid-security-posture` | security posture, DSPM, security cases, exposed credentials, top cases, what should I fix first | DSPM triage — ranks credential-exposure and policy cases by risk, drives remediation |
 | `/bigid:bigid-regulations-and-frameworks` | compliance report, GDPR, HIPAA, EO 14117, OSFI B-13, prove compliance, audit evidence, check us against [regulation] | Generates a regulation-specific compliance evidence PDF from live BigID data — supports named regulations, laws, executive orders, and custom uploaded policies |
 | `/bigid:bigid-shadowai-and-ai-risk` | AI risk, Shadow AI, AI posture, ungoverned AI, LLM data exposure, vector store, ChatGPT, OpenAI, Hugging Face | Triages DSPM cases scoped to AI risk and Shadow AI — surfaces credentials and regulated data inside AI platforms and vector stores |
+| `/bigid:bigid-access-graph` | who can access X, what can user Y reach, show me the access graph, map permissions, over-permissioned users, external sharing risk, access investigation, identities, entitlements, RBAC | Builds an interactive access graph from BigID ACI data — visualizes relationships between users, groups, permissions, and data resources |
+| `/bigid:bigid-create-assessment-template` | PIA template, custom template, privacy impact assessment, convert questionnaire, import template from Word/Excel/PDF, build PIA template | Turns a source document (Word/Excel/PDF) or interview into a new BigID PIA custom template — parses fields, resolves types, previews with user, and creates via BigID |
 
 ## Installation
 
